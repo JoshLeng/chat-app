@@ -1,4 +1,4 @@
-# Documentación de Estructura — chat-app
+Documentación de Estructura — chat-app
 
 Este proyecto es una aplicación móvil desarrollada con **React Native** (usando Expo), que implementa un sistema de chat moderno e intuitivo. Utiliza **Supabase** como backend para la gestión de base de datos y autenticación de usuarios.
 
