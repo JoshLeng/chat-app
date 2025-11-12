@@ -1,10 +1,38 @@
-Documentación del Proyecto — Chat App
+```markdown
+# Chat App — Documentación del proyecto
 
-Este proyecto es una aplicación móvil creada con React Native (utilizando Expo). Su objetivo es permitir la comunicación entre usuarios a través de un sistema de chat moderno, simple y funcional. Para manejar toda la parte del backend (base de datos, autenticación y mensajes en tiempo real) se utiliza Supabase, lo que facilita el trabajo con usuarios, perfiles, chats y mensajes sin necesidad de montar un servidor propio.
+Aplicación móvil de chat construida con React Native (Expo) y Supabase. Permite autenticación, gestión de perfiles, creación de chats y mensajería en tiempo real.
 
-Estructura general del proyecto.
+---
 
-El proyecto está organizado de la siguiente manera:
+## Índice
+- [Descripción](#descripción)
+- [Características principales](#características-principales)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Pantallas y navegación](#pantallas-y-navegación)
+- [Conexión con Supabase](#conexión-con-supabase)
+- [Esquema de la base de datos (Supabase)](#esquema-de-la-base-de-datos-supabase)
+- [Dependencias principales](#dependencias-principales)
+- [Seguridad](#seguridad)
+- [Flujo de la aplicación](#flujo-de-la-aplicación)
+
+---
+
+## Descripción
+Aplicación móvil para comunicación entre usuarios mediante chats individuales o grupales. Implementa autenticación, perfiles de usuario y mensajería en tiempo real usando Supabase.
+
+---
+
+## Características principales
+- Registro e inicio de sesión de usuarios (Supabase Auth).
+- Perfiles de usuario con avatar.
+- Lista de chats y creación de nuevos chats.
+- Mensajería en tiempo real dentro de cada chat.
+- Soporte para chats grupales e individuales.
+
+---
+
+## Estructura del proyecto
 
 chat-app/
 │
@@ -15,163 +43,148 @@ chat-app/
 ├── .gitignore
 │
 ├── assets/
-│   └── Recursos gráficos como iconos o imágenes
+│   └── Recursos gráficos (iconos, imágenes)
 │
 └── src/
     ├── lib/
-    │   └── supabaseClient.js       # Aquí se configura la conexión con Supabase
+    │   └── supabaseClient.js       # Configuración de Supabase
     ├── navigations/
-    │   └── AppNavigator.js         # Controla la navegación entre pantallas
+    │   └── AppNavigator.js         # Navegación entre pantallas
     └── screens/
-        ├── ChatListScreen.js       # Muestra todos los chats del usuario
-        ├── ChatScreen.js           # Pantalla donde se envían y reciben mensajes
-        ├── HomeScreen.js           # Pantalla principal con información del usuario
+        ├── ChatListScreen.js       # Lista de chats del usuario
+        ├── ChatScreen.js           # Conversación en tiempo real
+        ├── HomeScreen.js           # Información del usuario / cerrar sesión
         ├── LoginScreen.js          # Inicio de sesión
-        ├── NewChatScreen.js        # Permite crear un nuevo chat
-        ├── RegisterScreen.js       # Registro de usuarios nuevos
-        └── SplashScreen.js         # Pantalla de carga que revisa si hay sesión activa
+        ├── NewChatScreen.js        # Crear nuevo chat / buscar usuarios
+        ├── RegisterScreen.js       # Registro de usuarios
+        └── SplashScreen.js         # Revisa sesión activa
 
-Conexión con Supabase
+---
 
-El archivo src/lib/supabaseClient.js es el encargado de conectar la app con Supabase.
-Ahí se colocan la URL del proyecto y la clave anon que genera Supabase.
-Ejemplo:
+## Pantallas y navegación
+La navegación se maneja desde `AppNavigator.js` usando `@react-navigation/native-stack`. Dependiendo del estado de autenticación se muestran pantallas de login/registro o pantalla principales de chat.
 
-import { createClient } from '@supabase/supabase-js';
-const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
-const SUPABASE_ANON_KEY = 'tu_clave_anon';
+Descripción breve:
+- LoginScreen / RegisterScreen: autenticación.
+- HomeScreen: datos del usuario y salida.
+- ChatListScreen: listado de chats.
+- ChatScreen: mensajería en tiempo real.
+- NewChatScreen: crear o buscar chats.
+- SplashScreen: revisión de sesión al iniciar la app.
+
+---
+
+## Conexión con Supabase
+Crear `src/lib/supabaseClient.js` y configurar la conexión usando variables de entorno.
+
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL; // o REACT_NATIVE_APP_...
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+```
 
+Variables de entorno:
+- EXPO_PUBLIC_SUPABASE_URL=https://proyecto.supabase.co
+- EXPO_PUBLIC_SUPABASE_ANON_KEY=clave_anon
 
-Esta conexión se usa en toda la app para iniciar sesión, registrar usuarios, guardar perfiles, crear chats y enviar mensajes.
+---
 
-Funciones principales que usa Supabase
+## Esquema de la base de datos (Supabase)
 
-Autenticación: se utiliza para registrar y loguear usuarios desde las pantallas de RegisterScreen y LoginScreen.
+Tablas principales y campos:
 
-Gestión de perfiles: al iniciar sesión, si el usuario no tiene un perfil en la base de datos, se crea automáticamente.
+### 1. perfiles
+Guarda datos básicos del usuario (vinculado con Auth).
 
-Chats y mensajes: las tablas chats, chat_participantes y mensajes guardan toda la información del chat. Los mensajes se actualizan en tiempo real gracias a los canales de Supabase.
+| Campo       | Tipo         | Descripción                                |
+|-------------|--------------|--------------------------------------------|
+| id          | uuid (PK)    | Id del usuario (vinculado con Auth)       |
+| nombre      | text         | Nombre del usuario                         |
+| avatar_url  | text         | URL del avatar                             |
+| created_at  | timestamp    | Fecha de creación                          |
 
-Descripción de las pantallas
+### 2. chats
+Información general de cada chat (grupal o individual).
 
-LoginScreen y RegisterScreen: permiten crear cuenta o iniciar sesión.
+| Campo       | Tipo         | Descripción                                |
+|-------------|--------------|--------------------------------------------|
+| id          | uuid (PK)    | Identificador del chat                     |
+| nombre      | text         | Nombre del chat (para grupos)              |
+| es_grupal   | boolean      | Indica si es grupal                        |
+| creado_por  | uuid         | Usuario que creó el chat                   |
+| created_at  | timestamp    | Fecha de creación                          |
 
-HomeScreen: muestra los datos del usuario y la opción de cerrar sesión.
+### 3. chat_participantes
+Relaciona usuarios con chats (muchos a muchos).
 
-ChatListScreen: lista de los chats en los que participa el usuario.
+| Campo       | Tipo         | Descripción                                |
+|-------------|--------------|--------------------------------------------|
+| id          | serial (PK)  | Identificador                              |
+| chat_id     | uuid (FK)    | Chat al que pertenece                      |
+| usuario_id  | uuid (FK)    | Usuario participante                       |
+| joined_at   | timestamp    | Fecha en que se unió                       |
 
-ChatScreen: permite conversar en tiempo real con otros usuarios.
+### 4. mensajes
+Mensajes enviados por los usuarios.
 
-NewChatScreen: sirve para crear un nuevo chat o buscar usuarios.
+| Campo        | Tipo         | Descripción                               |
+|--------------|--------------|-------------------------------------------|
+| id           | serial (PK)  | Identificador                             |
+| chat_id      | uuid (FK)    | Chat al que pertenece                     |
+| remitente_id | uuid (FK)    | Usuario que envió el mensaje              |
+| contenido    | text         | Texto del mensaje                         |
+| created_at   | timestamp    | Fecha y hora de envío                     |
 
-SplashScreen: revisa si el usuario ya tiene sesión iniciada y redirige automáticamente.
+Relaciones:
+- Un usuario puede participar en varios chats (N:M via chat_participantes).
+- Un chat puede tener muchos mensajes.
+- Cada mensaje pertenece a un solo remitente y un solo chat.
 
-Navegación entre pantallas
+---
 
-Toda la navegación se maneja desde AppNavigator.js usando la librería @react-navigation/native-stack.
-Dependiendo si el usuario está logueado o no, muestra las pantallas de autenticación o las de chat.
+## Cómo ejecutar la app (local)
 
-Dependencias que utiliza el proyecto
-
-React Native / Expo
-
-React Navigation (para moverse entre pantallas)
-
-React Native Paper (para los componentes visuales)
-
-Supabase JS SDK (para conectar la app con la base de datos)
-
-Cómo funciona todo en conjunto
-
-El usuario abre la app y la SplashScreen verifica si hay una sesión activa.
-
-Si está autenticado, puede ver sus chats (ChatListScreen) o crear nuevos (NewChatScreen).
-
-Cuando entra a un chat (ChatScreen), los mensajes se actualizan en tiempo real gracias a Supabase.
-
-Todo el manejo de usuarios, autenticación, mensajes y datos pasa por Supabase, lo cual simplifica el mantenimiento.
-
-Seguridad
-
-Es importante no compartir la clave pública (anon key) en lugares públicos o en repositorios abiertos.
-Lo ideal es usar variables de entorno para mayor seguridad.
-
-Guía para ejecutar la app
-
-Clonar el proyecto:
-
+1. Clonar el repositorio
+```bash
 git clone https://github.com/tu-usuario/chat-app.git
 cd chat-app
+```
 
-
-Instalar dependencias:
-
+2. Instalar dependencias
+```bash
 npm install
+# o
+yarn install
+```
 
-
-Configurar Supabase:
-
-Crear un nuevo proyecto en https://supabase.com
-.
-
-Copiar la URL y la clave anon.
-
-Pegar esos valores en el archivo supabaseClient.js.
-
-Ejecutar la app:
-
+3. Ejecutar la app
+```bash
 npx expo start
+```
+Luego usar Expo Go en el teléfono o emulador para probar.
 
+---
 
-Luego, desde tu teléfono, abrir la app Expo Go y escanear el código QR.
+## Dependencias principales
+- React Native / Expo
+- @react-navigation/native-stack (React Navigation)
+- React Native Paper (UI)
+- @supabase/supabase-js (SDK de Supabase)
 
-Base de datos en Supabase
+---
 
-La app usa varias tablas para manejar la información. Estas son las principales:
+## Seguridad
+- Revisar reglas de RLS (Row Level Security) en Supabase para proteger datos.
 
-1. Tabla perfiles
+---
 
-Guarda los datos básicos de cada usuario.
+## Flujo de la aplicación
+1. SplashScreen verifica si hay sesión activa.
+2. Si no hay sesión → mostrar Login/Register.
+3. Si hay sesión → cargar Home y lista de chats (ChatListScreen).
+4. Al entrar a un chat (ChatScreen) se suscribe a actualizaciones en tiempo real (canales de Supabase) para recibir y enviar mensajes.
+5. La gestión de perfiles (creación/actualización) se realiza automáticamente si el usuario no tiene perfil en la DB al iniciar sesión.
 
-Campo	Tipo	Descripción
-id	uuid (PK)	Id del usuario (vinculado con la autenticación)
-nombre	text	Nombre del usuario
-avatar_url	text	Imagen o avatar
-created_at	timestamp	Fecha en que se creó
-2. Tabla chats
+---
 
-Guarda la información general de cada chat.
-
-Campo	Tipo	Descripción
-id	uuid (PK)	Identificador del chat
-nombre	text	Nombre del chat (en caso de grupos)
-es_grupal	boolean	Indica si es un chat grupal o individual
-creado_por	uuid	Usuario que lo creó
-created_at	timestamp	Fecha de creación
-3. Tabla chat_participantes
-
-Relaciona a los usuarios con los chats.
-
-Campo	Tipo	Descripción
-id	serial (PK)	Identificador
-chat_id	uuid (FK)	Chat al que pertenece
-usuario_id	uuid (FK)	Usuario participante
-joined_at	timestamp	Fecha en que se unió
-4. Tabla mensajes
-
-Guarda los mensajes enviados por los usuarios.
-
-Campo	Tipo	Descripción
-id	serial (PK)	Identificador
-chat_id	uuid (FK)	Chat al que pertenece
-remitente_id	uuid (FK)	Usuario que envió el mensaje
-contenido	text	Texto del mensaje
-created_at	timestamp	Fecha y hora en que se envió
-Relaciones entre tablas
-
-Un usuario puede estar en varios chats (relación muchos a muchos).
-
-Un chat puede tener varios mensajes.
-
-Cada mensaje pertenece a un solo usuario y a un solo chat.
+```
