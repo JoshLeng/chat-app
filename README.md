@@ -2,7 +2,7 @@ Documentación del Proyecto — Chat App
 
 Este proyecto es una aplicación móvil creada con React Native (utilizando Expo). Su objetivo es permitir la comunicación entre usuarios a través de un sistema de chat moderno, simple y funcional. Para manejar toda la parte del backend (base de datos, autenticación y mensajes en tiempo real) se utiliza Supabase, lo que facilita el trabajo con usuarios, perfiles, chats y mensajes sin necesidad de montar un servidor propio.
 
-Estructura general del proyecto
+Estructura general del proyecto.
 
 El proyecto está organizado de la siguiente manera:
 
