@@ -58,6 +58,7 @@ export default function LoginScreen({ navigation }) {
         value={email}
         onChangeText={setEmail}
         style={styles.input}
+        
         autoCapitalize="none"
         keyboardType="email-address"
       />
@@ -94,5 +95,6 @@ const styles = StyleSheet.create({
   title: { textAlign: 'center', marginBottom: 20 },
   input: { marginBottom: 10 },
   button: { marginTop: 10 },
+ 
   error: { color: 'red', textAlign: 'center', marginBottom: 10 },
 });

@@ -7,12 +7,14 @@ import { supabase } from '../lib/supabaseClient';
 export default function ChatsListScreen({ navigation }) {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState('');
+  const [userId, setUserId] = useState(null);
+  const APP_LOGO = require('../../assets/icon.png');
 
-  // Cargar chats al iniciar y cuando la pantalla recibe foco
+  // Cargar chats y usuario al iniciar
   useEffect(() => {
     loadChats();
     
-    // Escuchar cuando la pantalla recibe foco (al volver de otra pantalla)
     const unsubscribe = navigation.addListener('focus', () => {
       loadChats();
     });
@@ -26,27 +28,26 @@ export default function ChatsListScreen({ navigation }) {
     try {
       // 1. Obtener usuario actual
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('Usuario ID:', user?.id);
       
       if (!user) {
-        console.log('No hay usuario autenticado');
         setLoading(false);
         return;
       }
 
-      // 2. Verificar/Crear perfil
-      const { data: profile } = await supabase
+      setUserId(user.id);
+
+      // 2. Obtener nombre del perfil del usuario
+      const { data: profile, error: profileError } = await supabase
         .from('perfiles')
-        .select('id')
+        .select('nombre')
         .eq('id', user.id)
         .single();
 
-      if (!profile) {
-        console.log('Creando perfil...');
-        await supabase.from('perfiles').insert({
-          id: user.id,
-          nombre: user.email?.split('@')[0] || 'Usuario'
-        });
+      if (!profileError && profile) {
+        setUserName(profile.nombre);
+      } else {
+        // Si no hay perfil, usar el email como fallback
+        setUserName(user.email?.split('@')[0] || 'Usuario');
       }
 
       // 3. Cargar chats del usuario
@@ -66,11 +67,8 @@ export default function ChatsListScreen({ navigation }) {
       if (error) {
         console.error('Error fetching chats:', error);
       } else {
-        console.log('Chats encontrados:', data);
-        // Extraer los chats del resultado y filtrar nulos
         const userChats = data.map(item => item.chats).filter(chat => chat !== null);
         setChats(userChats);
-        console.log('Chats procesados:', userChats);
       }
       
     } catch (error) {
@@ -106,22 +104,44 @@ export default function ChatsListScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Header con logo placeholder y saludo */}
+      <View style={styles.header}>
+         <View style={styles.logoContainer}>
+          <View style={styles.logoPlaceholder}>
+            <Text style={styles.logoText}>💬 ChatApp</Text>
+          </View>
+      
+        </View>
+        
+        <Text style={styles.greeting}>Hola, {userName} 👋</Text>
+        <Text style={styles.subtitle}>
+          {chats.length === 0 
+            ? 'Comienza creando tu primer chat' 
+            : `Tienes ${chats.length} chat${chats.length !== 1 ? 's' : ''} activo${chats.length !== 1 ? 's' : ''}`
+          }
+        </Text>
+      </View>
+
+      {/* Lista de chats */}
       {chats.length === 0 ? (
         <View style={styles.center}>
-          <Text>No hay chats disponibles</Text>
-          <Text>Crea tu primer chat presionando el botón +</Text>
+          <Text style={styles.noChatsText}>No hay chats disponibles</Text>
+          <Text style={styles.noChatsSubtitle}>Presiona el botón + para crear tu primer chat</Text>
         </View>
       ) : (
         <FlatList
           data={chats}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          style={styles.chatsList}
         />
       )}
 
+      {}
       <FAB
-        icon="plus"
+        label="+"
         style={styles.fab}
+        size="big"
         onPress={() => navigation.navigate('NewChatScreen')}
       />
     </View>
@@ -129,23 +149,86 @@ export default function ChatsListScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fff',
+  },
+  header: {
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: '#ffffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  logoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+  },
+  logoIcon: {
+    fontSize: 40,
+    marginBottom: 8,
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#318829ff',
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  chatsList: {
+    flex: 1,
+  },
   chatItem: {
     padding: 16,
     borderBottomWidth: 1,
     borderColor: '#eee',
   },
-  chatTitle: { fontSize: 18, fontWeight: 'bold' },
-  chatSubtitle: { fontSize: 14, color: '#666' },
+  chatTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  chatSubtitle: { 
+    fontSize: 14, 
+    color: '#666',
+    marginTop: 2,
+  },
   fab: {
     position: 'absolute',
-    right: 16,
-    bottom: 16,
+    right: 15,
+    bottom: 50,
+    backgroundColor: '#6dd84dff',
   },
   center: { 
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center',
-    padding: 20 
+    padding: 20,
+  },
+  noChatsText: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  noChatsSubtitle: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
 });
