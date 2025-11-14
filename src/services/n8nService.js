@@ -6,32 +6,31 @@ export class N8nService {
     try {
       console.log('🚀 Enviando a n8n:', commandData);
       
+      // ⭐ DEBUG DETALLADO DEL JSON
+      const requestBody = {
+        command: commandData.type,
+        action: commandData.action,
+        params: commandData.params,
+        context: commandData.context,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log('📦 JSON que se enviará:', JSON.stringify(requestBody, null, 2));
+      console.log('🔗 URL:', this.WEBHOOK_URL);
+      
       const response = await fetch(this.WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          command: commandData.type,
-          action: commandData.action,
-          params: commandData.params,
-          context: commandData.context,
-          timestamp: new Date().toISOString()
-        })
+        body: JSON.stringify(requestBody),
       });
 
-      if (!response.ok) {
-        throw new Error(`Error n8n: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('✅ Respuesta n8n:', result);
-      
-      return result;
-      
+      // Devuelve el JSON de la respuesta (o ajusta según necesites)
+      return await response.json();
     } catch (error) {
-      console.error('❌ Error enviando a n8n:', error);
-      throw new Error(`No se pudo procesar el comando: ${error.message}`);
+      console.error('Error sending command to n8n:', error);
+      throw error;
     }
   }
 }
