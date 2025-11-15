@@ -1,6 +1,6 @@
 // src/services/commandService.js
 export class CommandService {
-  
+  ///////prueba
   static commands = {
     'email': {
     pattern: /(?:enviar|redactar|crear|mandar|escribir)\s+(?:correo|email|mail)\s+(?:a|para|dirigido a|destinado a)\s+([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:\s+(?:sobre|acerca de|con|relacionado con)\s+(.+))?/i,
@@ -8,7 +8,7 @@ export class CommandService {
     description: 'Enviar correo electrónico'
   },
   'calendar': {
-    pattern: /(?:crear|agendar|programar|agenda|organizar|coordinar)\s+(?:reuni[oó]n|evento|meeting|cita|encuentro)(?:\s+(?:a las|para las|el|para el|a|para|de)\s*(\d{1,2}:\d{2}|mañana|tarde|mediodía|pasado mañana|esta semana|próxima semana))?(?:\s+(?:sobre|acerca de|para|relacionado con|de)\s+(.+))?/i,
+    pattern: /(?:crear|agendar|programar|agenda|organizar|coordinar)\s+(?:una\s+)?(?:reuni[oó]n|evento|meeting|cita|encuentro)(?:\s+(?:para|el|a)\s+(mañana|pasado\s+mañana|hoy|esta\s+semana|próxima\s+semana))?(?:\s+(?:sobre|acerca de|para|de)\s+(.+))?/i,
     action: 'createEvent', 
     description: 'Crear evento en calendario'
   },
@@ -52,13 +52,13 @@ static extractParams(command, originalPrompt) {
         cuerpo: command.matches[2] || 'Sin contenido', 
         comando: 'email'
       };
-    case 'calendar':
-      return {
-        titulo: command.matches[2] || 'Reunión importante',
-        fecha: 'hoy', 
-        hora: command.matches[1] || 'por definir',
-        comando: 'calendar'
-      };
+   case 'calendar':
+  return {
+    titulo: command.matches[2] || 'Reunión importante', // ⭐ ESTE DEBE SER matches[2]
+    fecha: 'hoy', 
+    hora: command.matches[1] || 'por definir',
+    comando: 'calendar'
+  };
     case 'task':
       return {
         titulo: command.matches[1],

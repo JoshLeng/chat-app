@@ -220,6 +220,7 @@ const procesarComandoConAccion = async (command, params, context) => {
       if (command) {
         console.log('🔧 Procesando comando con acción');
         const params = CommandService.extractParams(command, prompt);
+        console.log("parámetro extraídos", params)
         respuesta = await procesarComandoConAccion(command, params, {
           chatId,
           chatName, 
